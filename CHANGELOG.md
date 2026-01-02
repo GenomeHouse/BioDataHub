@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to **Bio-Data-Hub** will be documented in this file.
 
+## [1.5.0] - 2026-01-02
+### Added
+- PCA visualization and K-Means clustering for CSV files (`BioDataHub: PCA & Clustering`).
+- Export PCA results as CSV from the visualization panel.
+
+### Changed
+- Bumped version to 1.5.0.
+
+
 ## [1.4.2] - 2025-05-17
 ### Added
 - New command: `BioDataHub: Export Data` for exporting datasets.

@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.VisualizationProvider = void 0;
 const vscode = require("vscode");
 const csvDataProvider_1 = require("./csvDataProvider");
+const PCA = require("ml-pca");
+const kmeans = require("ml-kmeans");
 // interface HeatmapData {
 //   row: string
 //   col: string
@@ -323,6 +325,156 @@ class VisualizationProvider {
             });
           `
             : ""}
+        </script>
+      </body>
+      </html>
+    `;
+    }
+    // PCA & Clustering visualization
+    async showPcaClustering(uri) {
+        const data = await this._csvDataProvider.parseCSVFile(uri);
+        const columns = this._csvDataProvider.getColumnNames(data);
+        const numericColumns = this.getNumericColumns(data, columns);
+        if (numericColumns.length < 2) {
+            vscode.window.showInformationMessage("Not enough numeric columns found for PCA (need at least 2).");
+            return;
+        }
+        // Build numeric matrix and labels
+        const matrix = data.map((row) => numericColumns.map((c) => Number(row[c])));
+        const firstCol = columns[0];
+        const labels = data.map((row, idx) => {
+            if (firstCol && !numericColumns.includes(firstCol) && row[firstCol])
+                return String(row[firstCol]);
+            return `sample_${idx + 1}`;
+        });
+        // Ask for cluster count
+        const kInput = await vscode.window.showInputBox({
+            prompt: "Number of clusters (2-6)",
+            value: "3",
+            validateInput: (value) => {
+                const n = Number(value);
+                if (isNaN(n) || n < 2 || n > 10)
+                    return "Enter a number between 2 and 10";
+                return null;
+            },
+        });
+        if (!kInput)
+            return;
+        const k = Number(kInput);
+        // Compute PCA
+        const pca = new PCA(matrix);
+        const projected = pca.predict(matrix, { nComponents: 2 });
+        // Normalize to number[][] regardless of type returned by pca library
+        let pcData;
+        if (Array.isArray(projected)) {
+            pcData = projected;
+        }
+        else if (typeof projected.to2DArray === 'function') {
+            pcData = projected.to2DArray();
+        }
+        else {
+            pcData = projected;
+        }
+        const pc1 = pcData.map((r) => Number(r[0] ?? 0));
+        const pc2 = pcData.map((r) => Number(r[1] ?? 0));
+        // Run KMeans
+        const kmRes = kmeans(matrix, k);
+        let clusterIds = [];
+        if (Array.isArray(kmRes)) {
+            clusterIds = kmRes;
+        }
+        else if (kmRes.clusters) {
+            clusterIds = kmRes.clusters;
+        }
+        else {
+            clusterIds = [];
+        }
+        const panel = vscode.window.createWebviewPanel("pcaClustering", `PCA & Clustering: ${uri.path.split("/").pop()}`, vscode.ViewColumn.Beside, { enableScripts: true });
+        panel.webview.html = this.getPcaClusteringHtml(labels, pc1, pc2, clusterIds, k);
+    }
+    getPcaClusteringHtml(labels, pc1, pc2, clusterIds, k) {
+        const points = labels.map((label, i) => ({
+            label,
+            x: pc1[i],
+            y: pc2[i],
+            cluster: clusterIds[i],
+        }));
+        return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>PCA & Clustering</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <style>
+          body { font-family: var(--vscode-font-family); background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); padding: 16px; }
+          #chart { width: 100%; height: 500px; }
+          .controls { margin-bottom: 12px; }
+          .btn { padding: 6px 10px; margin-right: 8px; }
+        </style>
+      </head>
+      <body>
+        <h2>PCA & K-Means Clustering (k=${k})</h2>
+        <div class="controls">
+          <button id="export">Export CSV</button>
+        </div>
+        <canvas id="chart"></canvas>
+        <script>
+          const points = ${JSON.stringify(points)};
+
+          // Group by cluster
+          const clusters = {};
+          points.forEach(p => {
+            if (!clusters[p.cluster]) clusters[p.cluster] = [];
+            clusters[p.cluster].push(p);
+          });
+
+          const colors = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7'];
+
+          const datasets = Object.keys(clusters).map((cid, idx) => ({
+            label: 'Cluster ' + cid,
+            data: clusters[cid].map(p => ({x: p.x, y: p.y, label: p.label})),
+            backgroundColor: colors[idx % colors.length],
+            pointRadius: 5
+          }));
+
+          const ctx = document.getElementById('chart').getContext('2d');
+          const scatter = new Chart(ctx, {
+            type: 'scatter',
+            data: { datasets },
+            options: {
+              responsive: true,
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label: (context) => {
+                      const p = context.raw;
+                      return p.label + ': (' + p.x.toFixed(3) + ', ' + p.y.toFixed(3) + ')';
+                    }
+                  }
+                }
+              },
+              scales: {
+                x: { title: { display: true, text: 'PC1' } },
+                y: { title: { display: true, text: 'PC2' } }
+              }
+            }
+          });
+
+          // Export
+          document.getElementById('export').addEventListener('click', () => {
+            const header = ['label','PC1','PC2','cluster'].join(',');
+            const rows = points.map(p => [p.label, p.x, p.y, p.cluster].join(','));
+            const csvContent = [header, ...rows].join('\n');
+            const blob = new Blob([csvContent], {type: 'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'pca_clusters.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+          });
         </script>
       </body>
       </html>

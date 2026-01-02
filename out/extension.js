@@ -29,6 +29,8 @@ function activate(context) {
         metadataProvider.generateAndShowMetadata(uri);
     }), vscode.commands.registerCommand("biodatahub.visualizeData", (uri) => {
         visualizationProvider.showVisualizationOptions(uri);
+    }), vscode.commands.registerCommand("biodatahub.pcaClustering", (uri) => {
+        visualizationProvider.showPcaClustering(uri);
     }), 
     // Register CSV file content provider for preview
     vscode.workspace.registerTextDocumentContentProvider("biodatahub-csv", csvDataProvider), 

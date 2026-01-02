@@ -36,6 +36,9 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("biodatahub.visualizeData", (uri: vscode.Uri) => {
       visualizationProvider.showVisualizationOptions(uri);
     }),
+    vscode.commands.registerCommand("biodatahub.pcaClustering", (uri: vscode.Uri) => {
+      visualizationProvider.showPcaClustering(uri);
+    }),
 
     // Register CSV file content provider for preview
     vscode.workspace.registerTextDocumentContentProvider("biodatahub-csv", csvDataProvider),
