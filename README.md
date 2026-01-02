@@ -55,6 +55,7 @@ npm run build
 | `BioDataHub: Preview CSV`            | Preview CSV files in the editor.         | `Ctrl+Shift+P`   |
 | `BioDataHub: Generate Metadata`      | Generate metadata for datasets.          | `Ctrl+Shift+M`   |
 | `BioDataHub: Visualize Data`         | Visualize CSV data.                      | `Ctrl+Shift+V`   |
+| `BioDataHub: PCA & Clustering`       | Generate PCA and K-Means clustering plot from a CSV | -                |
 | `BioDataHub: Export Data`            | Export processed data.                   | -                |
 
 ### Context Menu
@@ -64,6 +65,7 @@ Right-click on a `.csv` file in the Explorer to access the following options:
 - Preview CSV
 - Generate Metadata
 - Visualize Data
+- PCA & Clustering
 
 ## Screenshots
 
@@ -101,6 +103,10 @@ Contributions are welcome! Please fork the repository and submit a pull request.
 ## Support
 
 For any issues or feature requests, please open an issue on the [GitHub Repository](https://github.com/mubashir1837/BioDataHub/issues).
+
+BioDataHub: An Integrated VS Code Extension for Streamlined Bioinformatics Dataset Analysis and
+Visualization
+https://doi.org/10.21203/rs.3.rs-7861003/v1
 
 ---
 
