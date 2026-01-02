@@ -25,6 +25,7 @@ A VS Code extension for biological data exploration.
 - **Preview CSV Files**: View CSV data in a clean and organized format.
 - **Generate Metadata**: Automatically create metadata for datasets.
 - **Visualize Data**: Generate visualizations for better insights.
+- **PCA & Clustering**: Generate PCA and K-Means clustering plots from CSV files.
 - **Export Data**: Save processed data for further use.
 
 ## Installation
