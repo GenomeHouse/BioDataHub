@@ -1,6 +1,6 @@
 # Bio Data Hub 
 
-A VS Code extension for biological data exploration.
+A VS Code extension for biological data exploration..
 
 
 [![Version](https://img.shields.io/badge/version-1.4.2-blue)](https://marketplace.visualstudio.com/items?itemName=Mubashir-Ali.bio-data-hub&wt.mc_id=studentamb_468108)
